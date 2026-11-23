@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0b7a4b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Naira Note</title>
+<style>
+  :root {
+    --bg:#f1f4f6; --card:#ffffff; --ink:#12181f; --muted:#6b7684;
+    --line:#e3e8ec; --brand:#0b7a4b; --brandink:#ffffff; --danger:#b3261e;
+  }
+  body.dark {
+    --bg:#0f1417; --card:#182024; --ink:#e8edf0; --muted:#8e9aa5;
+    --line:#243036; --brand:#1fbf7a; --brandink:#07110c; --danger:#ff6b5e;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:-apple-system,Roboto,Arial,sans-serif; padding:14px 14px 80px; }
+  .wrap { max-width:520px; margin:0 auto; }
+  .card { background:var(--card); padding:16px; border-radius:14px;
+          margin-bottom:12px; border:1px solid var(--line); }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:15px; margin:0 0 10px; color:var(--muted); font-weight:600; }
+  .brand { font-size:13px; letter-spacing:2px; color:var(--brand); font-weight:700; }
+  input, select { width:100%; padding:12px; margin:6px 0; border:1px solid var(--line);
+          border-radius:9px; font-size:16px; background:var(--card); color:var(--ink); }
+  button { width:100%; padding:13px; background:var(--brand); color:var(--brandink);
+          border:none; border-radius:9px; font-size:16px; font-weight:600; margin-top:6px; }
+  .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); font-size:14px; }
+  .big { font-size:30px; font-weight:700; margin:2px 0 6px; }
+  .row { display:flex; gap:8px; }
+  .row button { margin-top:0; }
+  .chip { display:inline-block; padding:6px 11px; margin:4px 4px 0 0; border-radius:20px;
+          border:1px solid var(--line); font-size:13px; color:var(--muted); }
+  ul { margin:0; padding:0; }
+  li { list-style:none; padding:10px 0; border-bottom:1px solid var(--line); overflow:hidden; }
+  li button { float:right; width:auto; background:transparent; color:var(--danger);
+          border:1px solid var(--line); padding:4px 11px; margin:0 0 0 8px; font-size:13px; }
+  .when { display:block; font-size:12px; color:var(--muted); }
+  .stats { display:flex; margin:0 -6px; }
+  .stats div { flex:1; padding:0 6px; text-align:center; }
+  .stats b { display:block; font-size:17px; }
+  .stats span { font-size:11px; color:var(--muted); }
+  .tabs { position:fixed; left:0; right:0; bottom:0; background:var(--card);
+          border-top:1px solid var(--line); padding:8px 14px; display:flex; gap:8px; }
+  .tabs button { margin:0; padding:10px; font-size:13px; background:transparent;
+          color:var(--muted); border:none; }
+  .tabs button.on { color:var(--brand); font-weight:700; }
+  textarea { width:100%; height:120px; font-size:12px; padding:10px;
+          border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink); }
+  body.locked #app { display:none; }
+  body:not(.locked) #auth { display:none; }
+  .hide { display:none; }
+</style>
+</head>
+<body class="locked">
+<div class="wrap">
+
+  <div id="auth">
+    <div class="card">
+      <p class="brand">NAIRA NOTE</p>
+      <h1>Track every naira</h1>
+      <h2>Private expense records on your phone.</h2>
+
+      <div class="row">
+        <button id="toIn">Sign in</button>
+        <button id="toUp" class="ghost">Sign up</button>
+      </div>
+
+      <input id="u" placeholder="Username">
+      <input id="p" type="password" placeholder="PIN (4 or more)">
+      <input id="p2" type="password" class="hide" placeholder="Repeat PIN">
+      <button id="go">Enter</button>
+      <p class="when" id="msg">Your PIN stays on this phone only. Do not reuse a real password.</p>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="card">
+      <p class="brand">NAIRA NOTE</p>
+      <h1><span id="who"></span></h1>
+      <p class="big" id="total">Total: ₦0</p>
+      <p id="byCat" class="when"></p>
+      <select id="period">
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="all">All records</option>
+      </select>
+      <div class="stats">
+        <div><b id="sCount">0</b><span>ENTRIES</span></div>
+        <div><b id="sAvg">0</b><span>AVERAGE</span></div>
+        <div><b id="sMax">0</b><span>HIGHEST</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Add an expense</h2>
+      <input id="amount" type="number" placeholder="Amount">
+      <input id="note" placeholder="What was it for?">
+      <input id="cat" placeholder="Category">
+      <span class="chip">transport</span><span class="chip">food</span><span class="chip">airtime</span>
+      <span class="chip">rent</span><span class="chip">health</span>
+      <button id="addBtn">Add expense</button>
+    </div>
+
+    <div class="card">
+      <h2>Records</h2>
+      <input id="q" placeholder="Search notes or categories">
+      <ul id="list"></ul>
+      <p class="when" id="empty">Nothing here yet.</p>
+    </div>
+
+    <div class="card">
+      <h2>Your data</h2>
+      <button id="bBtn" class="ghost">Prepare backup</button>
+      <textarea id="backup" placeholder="Backup text appears here. Select it, copy it, keep it somewhere safe."></textarea>
+      <p class="when">Records live on this phone only. A backup is the only way to move them.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button id="themeBtn">Theme</button>
+  <button id="undoBtn">Undo last</button>
+  <button id="outBtn">Sign out</button>
+</div>
+
+<script>
+var USERS = "nn_users", SESS = "nn_session", THEME = "nn_theme";
+var user = "", items = [], mode = "in", lastId = null;
+
+function read(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
+function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function money(n) { return "\u20a6" + Number(n || 0).toLocaleString(); }
+function hash(text, salt) {
+  var h = 5381, s = salt + "|" + text, i;
+  for (i = 0; i < s.length; i++) { h = (h * 33) ^ s.charCodeAt(i); }
+  return (h >>> 0).toString(16);
+}
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) {
+  return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+
+function boot() {
+  if (read(THEME, "") === "dark") document.body.classList.add("dark");
+  var name = read(SESS, "");
+  if (name && read(USERS, {})[name]) { enter(name); }
+  document.getElementById("tabs").classList.toggle("hide", !!document.body.classList.contains("locked"));
+}
+
+function enter(name) {
+  user = name;
+  items = read("nn_exp_" + name, []);
+  document.body.classList.remove("locked");
+  document.getElementById("tabs").classList.remove("hide");
+  document.getElementById("who").textContent = name;
+  show();
+}
+
+function show() {
+  var p = document.getElementById("period").value;
+  var q = document.getElementById("q").value.toLowerCase();
+  var now = new Date(), list = document.getElementById("list");
+  var dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  var min = -1;
+  if (p === "today") min = dayStart;
+  if (p === "yesterday") min = dayStart - 86400000;
+  if (p === "7") min = dayStart - 6 * 86400000;
+  if (p === "30") min = dayStart - 29 * 86400000;
+
+  var total = 0, max = 0, count = 0, groups = {};
+  list.innerHTML = "";
+
+  for (var i = items.length - 1; i >= 0; i--) {
+    var it = items[i];
+    if (min > -1 && it.t < min) continue;
+    if (q && (it.note + " " + it.cat).toLowerCase().indexOf(q) < 0) continue;
+
+    var amt = Number(it.amount);
+    total += amt; count++;
+    if (amt > max) max = amt;
+    var key = it.cat || "none";
+    groups[key] = (groups[key] || 0) + amt;
+
+    var li = document.createElement("li");
+    var w = document.createElement("span");
+    w.innerHTML = "<b>" + esc(money(amt)) + "</b> &middot; " + esc(it.cat || "") +
+      (it.note ? "<span class=\"when\">" + esc(it.note) + " &middot; " +
+      new Date(it.t).toLocaleString() + "</span>" :
+      "<span class=\"when\">" + new Date(it.t).toLocaleString() + "</span>");
+    var x = document.createElement("button");
+    x.textContent = "Delete";
+    x.setAttribute("data-id", it.id);
+    x.onclick = function () { del(this.getAttribute("data-id")); };
+    li.appendChild(w); li.appendChild(x); list.appendChild(li);
+  }
+
+  document.getElementById("total").textContent = "Total: " + money(total);
+  var lines = "";
+  for (var g in groups) { lines += g + ": " + money(groups[g]) + "\n"; }
+  document.getElementById("byCat").textContent = lines;
+  document.getElementById("sCount").textContent = count;
+  document.getElementById("sAvg").textContent = money(count ? Math.round(total / count) : 0);
+  document.getElementById("sMax").textContent = money(max);
+  document.getElementById("empty").style.display = count ? "none" : "block";
+}
+
+function store() { save("nn_exp_" + user, items); }
+
+function del(id) {
+  if (!confirm("Delete this record?")) return;
+  var out = [];
+  for (var i = 0; i < items.length; i++) { if (items[i].id !== id) out.push(items[i]); }
+  items = out; store(); show();
+}
+
+function add() {
+  var a = document.getElementById("amount").value;
+  var n = document.getElementById("note").value;
+  var c = document.getElementById("cat").value;
+  if (a === "" || Number(a) <= 0) { alert("Enter an amount greater than zero"); return; }
+  var it = { id: Date.now() + "-" + Math.floor(Math.random() * 1000),
+             amount: a, note: n, cat: c, t: Date.now() };
+  items.push(it); lastId = it.id; store();
+  document.getElementById("amount").value = "";
+  document.getElementById("note").value = "";
+  document.getElementById("cat").value = "";
+  show();
+}
+
+function auth() {
+  var name = document.getElementById("u").value.trim().toLowerCase();
+  var pin = document.getElementById("p").value;
+  var msg = document.getElementById("msg");
+  var users = read(USERS, {});
+
+  if (name.length < 3) { msg.textContent = "Username needs at least 3 letters."; return; }
+  if (pin.length < 4) { msg.textContent = "PIN needs at least 4 characters."; return; }
+
+  if (mode === "up") {
+    if (users[name]) { msg.textContent = "That username already exists."; return; }
+    if (pin !== document.getElementById("p2").value) { msg.textContent = "The two PINs do not match."; return; }
+    var salt = Math.random().toString(36).slice(2);
+    users[name] = { salt: salt, pin: hash(pin, salt), created: Date.now() };
+    save(USERS, users);
+    save(SESS, name);
+    msg.textContent = "Account created.";
+    enter(name);
+  } else {
+    var rec = users[name];
+    if (!rec) { msg.textContent = "No account with that username. Sign up first."; return; }
+    if (hash(pin, rec.salt) !== rec.pin) { msg.textContent = "Wrong PIN."; return; }
+    save(SESS, name);
+    enter(name);
+  }
+}
+
+document.getElementById("toIn").onclick = function () {
+  mode = "in"; document.getElementById("p2").classList.add("hide");
+  this.className = ""; document.getElementById("toUp").className = "ghost";
+};
+document.getElementById("toUp").onclick = function () {
+  mode = "up"; document.getElementById("p2").classList.remove("hide");
+  this.className = ""; document.getElementById("toIn").className = "ghost";
+};
+document.getElementById("go").onclick = auth;
+document.getElementById("addBtn").onclick = add;
+document.getElementById("period").onchange = show;
+document.getElementById("q").oninput = show;
+
+var chips = document.querySelectorAll(".chip");
+for (var c = 0; c < chips.length; c++) {
+  chips[c].onclick = function () { document.getElementById("cat").value = this.textContent; };
+}
+
+document.getElementById("undoBtn").onclick = function () {
+  if (!lastId) { alert("Nothing to undo."); return; }
+  var out = [];
+  for (var i = 0; i < items.length; i++) { if (items[i].id !== lastId) out.push(items[i]); }
+  items = out; lastId = null; store(); show();
+};
+
+document.getElementById("themeBtn").onclick = function () {
+  var dark = document.body.classList.toggle("dark");
+  save(THEME, dark ? "dark" : "light");
+};
+
+document.getElementById("bBtn").onclick = function () {
+  var rows = "date,amount,category,note\n";
+  for (var i = 0; i < items.length; i++) {
+    rows += new Date(items[i].t).toISOString() + "," + items[i].amount + "," +
+            (items[i].cat || "") + "," + (items[i].note || "") + "\n";
+  }
+  document.getElementById("backup").value = rows;
+  document.getElementById("backup").select();
+};
+
+document.getElementById("outBtn").onclick = function () {
+  localStorage.removeItem(SESS);
+  location.reload();
+};
+
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
+
+var b = document.createElement("button");
+b.textContent = "Update app";
+b.className = "ghost";
+document.getElementById("app").appendChild(b);
+
+boot();
+</script>
+</body>
+  </html>
