@@ -1,2 +1,2 @@
-# Naira-note-
+# Nairanote
  My expenses 
